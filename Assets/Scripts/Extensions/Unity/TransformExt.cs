@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace Extensions.Unity
 {
@@ -84,6 +85,24 @@ namespace Extensions.Unity
 
             component = default;
             return false;
+        }
+        
+        public static void TryGetComponentInChildrenRecursive<T>(this Transform trans, List<T> components)
+        {
+            for (int i = 0; i < trans.childCount; i ++)
+            {
+                Transform thisChild = trans.GetChild(i);
+
+                if (thisChild.TryGetComponent(out T component))
+                {
+                    components.Add(component);
+                    trans.GetChild(i).TryGetComponentInChildrenRecursive(components);
+                }
+                else
+                {
+                    trans.GetChild(i).TryGetComponentInChildrenRecursive(components);
+                }
+            }
         }
         
         public static void Copy(this Transform transform, Transform transToCopy)

@@ -4,21 +4,38 @@ namespace Extensions.Unity
 {
     public static class MathfExt
     {
-        private const float OneDec = 10f;
         private const float MaxEulAngle = 360f;
+        private const float HalfRadMinus = -HalfRad;
+        private const float HalfRad = 180f;
 
         public static float RoundToOneDec(float number)
         {
-            return Mathf.Round(number * OneDec) / OneDec;
+            return Mathf.Round(number * 10f) / 10f;
         }
 
         public static float ToEul(this float thisFloat)
         {
-            if(thisFloat > MaxEulAngle) thisFloat %= MaxEulAngle;
-            
+            thisFloat %= MaxEulAngle;
+
             return thisFloat;
         }
         
+        public static float ToShortestAngle(this float thisFloat)
+        {
+            thisFloat %= 360f;
+
+            if (thisFloat > 180f)
+            {
+                thisFloat -= 360f;
+            }
+            else if (thisFloat < -180f)
+            {
+                thisFloat += 360f;
+            }
+
+            return thisFloat;
+        }
+
         public static bool IsEulBtwn(this float thisEul, float min, float max)
         {
             thisEul = thisEul.ToEul();

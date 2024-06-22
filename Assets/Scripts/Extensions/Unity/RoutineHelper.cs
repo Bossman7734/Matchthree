@@ -13,7 +13,6 @@ namespace Extensions.Unity
         private readonly MonoBehaviour _myInvokingMono;
         private readonly Func<bool> _whileCond;
         private bool _isStopped;
-        public bool IsStopped => _isStopped;
         public event UnityAction OnEnded;
 
         private bool _isPaused;

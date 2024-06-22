@@ -19,7 +19,10 @@ namespace Extensions.Unity.MonoHelper
 
         [ShowIf("@_manualReference == true")][SerializeField]
         protected List<UIIMG> _uIIMGs = new();
-
+        
+        [ShowIf("@_manualReference == true")][SerializeField]
+        protected List<UISlider> _uISliders = new();
+        
         [ShowIf("@_manualReference == true")][SerializeField]
         private List<Image> _myOtherIMGs = new();
 
@@ -75,6 +78,10 @@ namespace Extensions.Unity.MonoHelper
                     {
                         _uIIMGs.Add(uiimg);
                     }
+                    else if(uiBase is UISlider uiSlider)
+                    {
+                        _uISliders.Add(uiSlider);
+                    }
                 }
                 else
                 {
@@ -106,6 +113,7 @@ namespace Extensions.Unity.MonoHelper
             _uIIMGs = new List<UIIMG>();
             _myOtherIMGs = new List<Image>();
             _myOtherTMPs = new List<TextMeshProUGUI>();
+            _uISliders = new List<UISlider>();
         }
 
         [Button]

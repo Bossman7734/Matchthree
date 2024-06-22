@@ -15,8 +15,6 @@ namespace Extensions.Unity
 
         private readonly List<PoolObjData> _myPool = new List<PoolObjData>();
 
-        //TODO: Create for local pos and rot
-
         public MonoPool(MonoPoolData monoPoolData)
         {
             _monoPoolData = monoPoolData;

@@ -9,13 +9,18 @@ namespace Installers
     {
         private ProjectEvents _projectEvents;  //Property olan ProjectEvents i introduce/Field a çeviriyoruz...
         private  InputEvents _InputEvents;
+        private GridEvents _gridEvents;
 
         public override void InstallBindings()
         {
             _projectEvents = new();      
             Container.BindInstance(_projectEvents).AsSingle();// Singleton gibi fakat değil...
+            
             _InputEvents = new InputEvents();
             Container.BindInstance(_InputEvents).AsSingle();
+
+            _gridEvents = new GridEvents();
+            Container.BindInstance(_gridEvents).AsSingle();
         }
 
         private void Awake()

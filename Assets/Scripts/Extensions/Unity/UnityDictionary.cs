@@ -13,6 +13,9 @@ namespace Extensions.Unity
 
         void ISerializationCallbackReceiver.OnBeforeSerialize()
         {
+            _tKeys.Clear();
+            _tValues.Clear();
+            
             _tKeys = Keys.ToList();
             _tValues = Values.ToList();
         }
@@ -28,6 +31,9 @@ namespace Extensions.Unity
                     Add(_tKeys[i], _tValues[i]);
                 }
             }
+
+            _tKeys?.Clear();
+            _tValues.Clear();
         }
     }
 }
