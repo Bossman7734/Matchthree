@@ -5728,6 +5728,7 @@ MonoBehaviour:
   _gridBounds:
     m_Center: {x: 4.5, y: 4.5, z: 0}
     m_Extent: {x: 5, y: 4.98503, z: 0.1}
+  _transform: {fileID: 1276129048}
 --- !u!114 &1281068319 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4729808738624499347, guid: fed1c53871832524cb925770295e36a7, type: 3}
