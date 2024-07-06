@@ -5724,11 +5724,14 @@ MonoBehaviour:
   - {fileID: 853800160784702462, guid: fed1c53871832524cb925770295e36a7, type: 3}
   - {fileID: 8627203784045264512, guid: 461efbe8cc95b1e4dbe117539e051a61, type: 3}
   - {fileID: 2684301859220750513, guid: 5ad476d463e0d4b4dbf0d87bbb7b113a, type: 3}
+  _gridSizeX: 10
+  _gridSizeY: 10
   _prefabIds: 00000000010000000200000003000000
   _gridBounds:
     m_Center: {x: 4.5, y: 4.5, z: 0}
     m_Extent: {x: 5, y: 4.98503, z: 0.1}
   _transform: {fileID: 1276129048}
+  _tilesToMove: []
 --- !u!114 &1281068319 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4729808738624499347, guid: fed1c53871832524cb925770295e36a7, type: 3}

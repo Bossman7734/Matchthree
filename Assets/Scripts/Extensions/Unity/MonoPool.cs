@@ -21,7 +21,7 @@ namespace Extensions.Unity
 
             if (_monoPoolData.Prefab.TryGetComponent(out IPoolObj _) == false)
             {
-                Debug.LogError("This is not a pool object. Make sure you inherit IPoolObj at prefab main parent");
+               
             }
 
             for (int i = 0; i < _monoPoolData.InitSize; i++)

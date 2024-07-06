@@ -1,15 +1,23 @@
+using System;
+using DG.Tweening;
+using Extensions.Unity;
 using UnityEngine;
 
 
 namespace Components
 {
-    public class Tile : MonoBehaviour, ICoordSet
+    public class Tile : MonoBehaviour, ICoordSet,IPoolObj
     {
+        
+        
         public Vector2Int Coords => _coords;
         public int ID => _id;
+        public MonoPool MyPool { get; set; }
 
         [SerializeField] private Vector2Int _coords;
         [SerializeField] private int _id;
+        [SerializeField] private SpriteRenderer _spriteRenderer;
+        [SerializeField] private Transform _transform;
 
 
         public void Construct(Vector2Int coords)
@@ -25,9 +33,39 @@ namespace Components
 
         }
 
-        public void SetCoord(int x, int y)
+        public void Teleport(Vector3 worldPos)
+        {
+            _transform.position = worldPos;
+        }
+
+         void ICoordSet.SetCoord(int x, int y)
         {
             _coords = new Vector2Int(x, y);
+        }
+
+        public void DOMove(Vector3 worldPos, float f)
+        { 
+            _transform.DOMove(worldPos, 1f);
+        }
+
+        public void AfterCreate()
+        {
+            
+        }
+
+        public void BeforeDeSpawn()
+        {
+            
+        }
+
+        public void TweenDelayedDeSpawn(Func<bool> onComplete)
+        {
+            
+        }
+
+        public void AfterSpawn()
+        {
+           //RESET METHOD (Ressurrect)
         }
     }
 
