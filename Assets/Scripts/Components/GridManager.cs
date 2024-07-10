@@ -1,18 +1,13 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using DG.Tweening;
 using Events;
 using Extensions.DoTween;
 using Extensions.System;
 using Extensions.Unity;
-using NUnit.Framework;
 using Sirenix.OdinInspector;
 using Sirenix.Serialization;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.Events;
 using Zenject;
 
 
@@ -66,39 +61,10 @@ namespace Components
                 );
                 _tilePoolsByPrefabID.Add(tilePool);
             }
-           
             
-            _tilePool1 = new MonoPool
-            (
-                new MonoPoolData
-                (
-                    _tilePrefabs[1],
-                    10,
-                    _transform
-                )
-            );
-            
-            _tilePool2 = new MonoPool
-            (
-                new MonoPoolData
-                (
-                    _tilePrefabs[2],
-                    10,
-                    _transform
-                )
-            );
-            
-            _tilePool3 = new MonoPool
-            (
-                new MonoPoolData
-                (
-                    _tilePrefabs[3],
-                    10,
-                    _transform
-                )
-            );
             TweenContainer = TweenContain.Install(this);
         }
+        
 
 
         private void OnEnable()
@@ -106,95 +72,166 @@ namespace Components
             RegisterEvents();
         }
 
-        private void Start()
-        {
-            GridEvents.GridLoaded.Invoke(_gridBounds);
-        }
 
         private void OnDisable()
         {
             UnRegisterEvents();
             TweenContainer.Clear();
         }
-
-        private void RegisterEvents()
+        private void Start()
         {
-            InputEvents.MouseDownGrid += OnMouseDownGrid;
-            InputEvents.MouseUpGrid += OnMouseUpGrid;
+            GridEvents.GridLoaded.Invoke(_gridBounds);
         }
 
 
-        private void OnMouseDownGrid(Tile clickedTile, Vector3 dirVector)
-        {
-            _selectedTile = clickedTile;
-            _mouseDownPos = dirVector;
-        }
 
-        private bool CanMove(Vector2Int tileMoveCoord)
-        {
-            return _grid.IsInsideGrid(tileMoveCoord);
-        }
 
 
         private bool HasMatch(Tile fromTile, Tile toTile, out List<Tile> matches)
         {
             bool hasMatches = false;
 
-            matches = _grid.GetMatchesY(toTile);
-            matches.AddRange(_grid.GetMatchesX(toTile));
+            matches = _grid.GetMatchesYAll(toTile);
+            matches.AddRange(_grid.GetMatchesXAll(toTile));
 
-            matches.AddRange(_grid.GetMatchesY(fromTile));
-            matches.AddRange(_grid.GetMatchesX(fromTile));
+            matches.AddRange(_grid.GetMatchesYAll(fromTile));
+            matches.AddRange(_grid.GetMatchesXAll(fromTile));
 
             if (matches.Count > 2) hasMatches = true;
 
             return hasMatches;
         }
 
-        [Button] //Unit Test : Fonksiyonları tek tek test edebiliriz...
+        private bool IsGameOver(out Tile hintTile, out GridDir hintDir)
+        {
+           Debug.LogWarning("IsGameOver check!");
+            hintDir = GridDir.Null;
+            hintTile = null;
+            
+            List<Tile> matches = new();
+            
+            foreach (Tile fromTile in _grid)
+            {
+                bool isPearl = false;
+                hintTile = fromTile;
+
+                if (hintTile.Coords == new Vector2Int(1, 0))
+                {
+                    Debug.LogWarning("Break");
+                    isPearl = true;
+                }
+                
+                Vector2Int thisCoord = fromTile.Coords;
+
+                Vector2Int topCoord = thisCoord + Vector2Int.up;
+                Vector2Int botCoord = thisCoord + Vector2Int.down;
+                Vector2Int leftCoord = thisCoord + Vector2Int.left;
+                Vector2Int rightCoord = thisCoord + Vector2Int.right;
+
+                if (_grid.IsInsideGrid(topCoord))
+                {
+                    
+                    Tile toTile = _grid.Get(topCoord);
+                    _grid.Swap(fromTile,toTile);
+
+                    matches = _grid.GetMatchesX(fromTile);
+                    matches.AddRange(_grid.GetMatchesY(fromTile)); 
+                    
+                    if (isPearl)
+                    {
+                        Debug.LogWarning($"fromTile.Coords:{fromTile.Coords}, topCoord {topCoord}");
+                        Debug.LogWarning($"matches{matches.Count}");
+                    }
+                    _grid.Swap(toTile, fromTile);
+                    
+                    if (matches.Count > 0)
+                    {  
+                        hintDir = GridDir.Up;
+                        return false;
+                    }
+                }
+                
+                if (_grid.IsInsideGrid(botCoord))
+                { 
+                    if (isPearl)
+                    {
+                        Debug.LogWarning(botCoord);
+                    }
+                    
+                    Tile toTile = _grid.Get(botCoord);
+                    _grid.Swap(fromTile,toTile);
+
+                    matches = _grid.GetMatchesX(fromTile);
+                    matches.AddRange(_grid.GetMatchesY(fromTile)); 
+                    
+                    _grid.Swap(toTile, fromTile);
+                    
+                    if (matches.Count > 0)
+                    { 
+                        hintDir = GridDir.Down;
+                        return false;
+                    }
+                }
+                
+                if (_grid.IsInsideGrid(leftCoord))
+                {  
+                    if (isPearl)
+                    {
+                        Debug.LogWarning(leftCoord);
+                    }
+                    
+                    Tile toTile = _grid.Get(leftCoord);
+                    _grid.Swap(fromTile,toTile);
+
+                    matches = _grid.GetMatchesX(fromTile);
+                    matches.AddRange(_grid.GetMatchesY(fromTile)); 
+                    
+                    _grid.Swap(toTile, fromTile);
+                    
+                    if (matches.Count > 0)
+                    {
+                        hintDir = GridDir.left;
+                        return false;
+                    }
+                }
+                if (_grid.IsInsideGrid(rightCoord))
+                {
+                    if (isPearl)
+                    {
+                        Debug.LogWarning(rightCoord);
+                    }
+                    
+                    Tile toTile = _grid.Get(rightCoord);
+                    _grid.Swap(fromTile,toTile);
+
+                    matches = _grid.GetMatchesX(fromTile);
+                    matches.AddRange(_grid.GetMatchesY(fromTile)); 
+                    
+                    _grid.Swap(toTile, fromTile);
+                    
+                    if (matches.Count > 0)
+                    {
+                        hintDir = GridDir.Right;
+                        return false;
+                    }
+                }
+            }
+            return matches.Count == 0;
+        }
+
+        [Button] //Unit Test 
         private void TestGridDir(Vector2 input)
         {
             Debug.LogWarning(GridF.GetGridDir(input));
         }
 
-
-        private void OnMouseUpGrid(Vector3 mouseUpPos)
+        [Button]
+        private void TestGameOver()
         {
-            _mouseUpPos = mouseUpPos;
-
-            Vector3 dirVector = mouseUpPos - _mouseDownPos;
-
-            if (_selectedTile)
-            {
-                Vector2Int tileMoveCoord = _selectedTile.Coords + GridF.GetGridDirVector(dirVector);
-
-                if (!CanMove(tileMoveCoord)) return;
-
-                Tile toTile = _grid.Get(tileMoveCoord);
-
-                _grid.Swap(_selectedTile, toTile);
-
-                if (!HasMatch(_selectedTile, toTile, out List<Tile> matches))
-                {
-                    _grid.Swap(toTile, _selectedTile);
-                    return;
-                }
-
-
-                DotileMoveAnim(_selectedTile, toTile,
-                    delegate
-                    {
-                        matches.DoToAll(e =>
-                        {
-                            _grid.Set(null, e.Coords);
-                            e.gameObject.Destroy();
-                        });
-
-                        RainDownTiles();
-                    });
-
-                _currMatchesDebug = matches;
-            }
+           bool isGameOver = IsGameOver(out Tile hintTile, out GridDir hintDir);
+           
+           Debug.LogWarning($"İsGameOver: {isGameOver}, hintTile {hintTile}, hintDir {hintDir}", hintTile);
+          
         }
 
         private void RainDownTiles()
@@ -271,6 +308,59 @@ namespace Components
             TweenContainer.AddedSeq.onComplete += onComplate;
         }
 
+        private void RegisterEvents()
+        {
+            InputEvents.MouseDownGrid += OnMouseDownGrid;
+            InputEvents.MouseUpGrid += OnMouseUpGrid;
+        }
+        private void OnMouseDownGrid(Tile clickedTile, Vector3 dirVector)
+        {
+            _selectedTile = clickedTile;
+            _mouseDownPos = dirVector;
+        }
+
+        private bool CanMove(Vector2Int tileMoveCoord)
+        {
+            return _grid.IsInsideGrid(tileMoveCoord);
+        }
+        
+        private void OnMouseUpGrid(Vector3 mouseUpPos)
+        {
+            _mouseUpPos = mouseUpPos;
+
+            Vector3 dirVector = mouseUpPos - _mouseDownPos;
+
+            if (_selectedTile)
+            {
+                Vector2Int tileMoveCoord = _selectedTile.Coords + GridF.GetGridDirVector(dirVector);
+
+                if (!CanMove(tileMoveCoord)) return;
+
+                Tile toTile = _grid.Get(tileMoveCoord);
+
+                _grid.Swap(_selectedTile, toTile);
+
+                if (!HasMatch(_selectedTile, toTile, out List<Tile> matches))
+                {
+                    _grid.Swap(toTile, _selectedTile);
+                    return;
+                }
+
+                DotileMoveAnim(_selectedTile, toTile,
+                    delegate
+                    {
+                        matches.DoToAll(e =>
+                        {
+                            _grid.Set(null, e.Coords);
+                            e.gameObject.Destroy();
+                        });
+
+                        RainDownTiles();
+                    });
+
+                _currMatchesDebug = matches;
+            }
+        }
         private void UnRegisterEvents()
         {
             InputEvents.MouseDownGrid += OnMouseDownGrid;
