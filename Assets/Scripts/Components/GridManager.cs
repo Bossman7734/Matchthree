@@ -104,7 +104,6 @@ namespace Components
 
         private bool IsGameOver(out Tile hintTile, out GridDir hintDir)
         {
-           Debug.LogWarning("IsGameOver check!");
             hintDir = GridDir.Null;
             hintTile = null;
             
@@ -112,14 +111,7 @@ namespace Components
             
             foreach (Tile fromTile in _grid)
             {
-                bool isPearl = false;
                 hintTile = fromTile;
-
-                if (hintTile.Coords == new Vector2Int(1, 0))
-                {
-                    Debug.LogWarning("Break");
-                    isPearl = true;
-                }
                 
                 Vector2Int thisCoord = fromTile.Coords;
 
@@ -137,11 +129,6 @@ namespace Components
                     matches = _grid.GetMatchesX(fromTile);
                     matches.AddRange(_grid.GetMatchesY(fromTile)); 
                     
-                    if (isPearl)
-                    {
-                        Debug.LogWarning($"fromTile.Coords:{fromTile.Coords}, topCoord {topCoord}");
-                        Debug.LogWarning($"matches{matches.Count}");
-                    }
                     _grid.Swap(toTile, fromTile);
                     
                     if (matches.Count > 0)
@@ -153,11 +140,6 @@ namespace Components
                 
                 if (_grid.IsInsideGrid(botCoord))
                 { 
-                    if (isPearl)
-                    {
-                        Debug.LogWarning(botCoord);
-                    }
-                    
                     Tile toTile = _grid.Get(botCoord);
                     _grid.Swap(fromTile,toTile);
 
@@ -174,11 +156,7 @@ namespace Components
                 }
                 
                 if (_grid.IsInsideGrid(leftCoord))
-                {  
-                    if (isPearl)
-                    {
-                        Debug.LogWarning(leftCoord);
-                    }
+                { 
                     
                     Tile toTile = _grid.Get(leftCoord);
                     _grid.Swap(fromTile,toTile);
@@ -196,11 +174,6 @@ namespace Components
                 }
                 if (_grid.IsInsideGrid(rightCoord))
                 {
-                    if (isPearl)
-                    {
-                        Debug.LogWarning(rightCoord);
-                    }
-                    
                     Tile toTile = _grid.Get(rightCoord);
                     _grid.Swap(fromTile,toTile);
 
