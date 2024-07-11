@@ -2,16 +2,19 @@ using System;
 using System.Linq;
 using Events;
 using Extensions.Unity;
+using Extensions.Unity.MonoHelper;
 using UnityEngine;
 using Zenject;
 
 namespace Components
 {
-    public class InputListener : MonoBehaviour
+    public class InputListener : EventListenerMono
     {
         [Inject] private InputEvents InputEvents{get;set;}
+        [Inject] private GridEvents GridEvents { get;set; }
         [Inject] private Camera Camera {get;set;}
         private RoutineHelper _InputRoutine;
+
 
         private void Awake()
         {
@@ -50,6 +53,27 @@ namespace Components
                 
             }
         }
-        
+
+        protected override void RegisterEvents()
+        {
+            GridEvents.InputStart += OnInputStart;
+            GridEvents.InputStop += OnInputStop;
+        }
+
+
+        private void OnInputStart()
+        {
+            _InputRoutine.StartCoroutine();
+        }
+        private void OnInputStop()
+        {
+            _InputRoutine.StopCoroutine();
+        }
+
+        protected override void UnRegisterEvents()
+        {
+            GridEvents.InputStart -= OnInputStart;
+            GridEvents.InputStop -= OnInputStop;
+        }
     }
 }

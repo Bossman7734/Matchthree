@@ -239,8 +239,12 @@ namespace Components
             bool didDestroy = true;
             
             _tilesToMove = new Tile[_gridSizeX, _gridSizeY];
+
+
             for (int y = 0; y < _gridSizeY; y++)
             {
+                int spawnStartY = 0;
+                int spawnQueue = 0;
                 for (int x = 0; x < _gridSizeX; x++)
                 {
                     Vector2Int thisCoord = new(x, y);
@@ -253,9 +257,16 @@ namespace Components
                     {
                         if (y1 == spawnPoint)
                         {
+                            if (spawnStartY == 0)
+                            {
+                                spawnStartY = thisCoord.y;
+                            }
+                            
+                            spawnQueue = thisCoord.y - spawnStartY;
+                                
                             MonoPool randomPool = _tilePoolsByPrefabID.Random();
                             Tile newTile = randomPool.Request<Tile>();
-                            Vector3 SpawnWorldPos = _grid.CoordsToWorld(_transform,new Vector2Int(x, spawnPoint));
+                            Vector3 SpawnWorldPos = _grid.CoordsToWorld(_transform,new Vector2Int(x, spawnPoint + spawnQueue));
                             newTile.Teleport(SpawnWorldPos);
                             _grid.Set(newTile, thisCoord);
                             _tilesToMove[thisCoord.x,thisCoord.y] = newTile;
@@ -276,12 +287,16 @@ namespace Components
                     }
                 }
             }
+            
 
             StartCoroutine(RainDownRoutine());
+            
         }
 
         private IEnumerator RainDownRoutine()
         {
+            bool shouldWait = false;
+            
             for (int y = 0; y < _gridSizeY; y++)
             {
                 for (int x = 0; x < _gridSizeX; x++)
@@ -290,10 +305,17 @@ namespace Components
 
                    if (thisTile == false) continue;
                    thisTile.DOMove(_grid.CoordsToWorld(_transform, thisTile.Coords), 1f);
+                   yield return new WaitForSeconds(0.1f);
+
+                   shouldWait = true;
                 }
-                
-                yield return new WaitForSeconds(0.1f);
+
+                if (shouldWait)
+                {
+                    yield return new WaitForSeconds(0.1f);
+                }
             }
+            GridEvents.InputStart?.Invoke();
         }
 
 
@@ -345,6 +367,8 @@ namespace Components
                     _grid.Swap(toTile, _selectedTile);
                     return;
                 }
+
+                GridEvents.InputStop?.Invoke();
 
                 DotileMoveAnim(_selectedTile, toTile,
                     delegate
