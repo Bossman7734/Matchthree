@@ -15,7 +15,14 @@ namespace Extensions.DoTween
             }
         }
 
-        public Tween AddedTween { get; private set; }
+        private Tween AddedTween { get; set; }
+
+        Tween ITweenContainer.AddedTween
+        {
+            get => AddedTween;
+            set => AddedTween = value;
+        }
+
         public Sequence AddSequence {
             set
             {
@@ -94,7 +101,7 @@ namespace Extensions.DoTween
     public interface ITweenContainer
     {
         Tween AddTween { set; }
-        Tween AddedTween { get; }
+        Tween AddedTween { get; set; }
         Sequence AddSequence { set; }
         Sequence AddedSeq { get; }
         void Clear();

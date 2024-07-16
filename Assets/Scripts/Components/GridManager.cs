@@ -13,28 +13,22 @@ using Zenject;
 
 namespace Components
 {
-    public partial class GridManager:  SerializedMonoBehaviour, ITweenContainerBind
+    public partial class GridManager : SerializedMonoBehaviour, ITweenContainerBind
     {
         [Inject] private InputEvents InputEvents { get; set; }
-
-        [BoxGroup(Order = 999)] [TableMatrix(SquareCells = true, DrawElementMethod = nameof(DrawTile))]
-         [OdinSerialize]
+        [Inject] private GridEvents GridEvents { get; set; }
+        [BoxGroup(Order = 999)] [TableMatrix(SquareCells = true, DrawElementMethod = nameof(DrawTile))] [OdinSerialize]
         private Tile[,] _grid;
-
         [SerializeField] private List<GameObject> _tilePrefabs;
-
-
         [SerializeField] private int _gridSizeX;
         [SerializeField] private int _gridSizeY;
         [SerializeField] List<int> _prefabIds;
         [SerializeField] private Bounds _gridBounds;
         [SerializeField] private Transform _transform;
-
-
+        
         private Tile _selectedTile;
         private Vector3 _mouseDownPos;
         private Vector3 _mouseUpPos;
-        private List<Tile> _currMatchesDebug;
         public ITweenContainer TweenContainer { get; set; }
         private List<MonoPool> _tilePoolsByPrefabID;
         private MonoPool _tilePool0;
@@ -42,14 +36,15 @@ namespace Components
         private MonoPool _tilePool2;
         private MonoPool _tilePool3;
         private Tile[,] _tilesToMove;
+        private List<Tile> _lastMatches;
+
 
         private void Awake()
         {
             _tilePoolsByPrefabID = new List<MonoPool>();
-            
+
             for (int preFabID = 0; preFabID < _prefabIds.Count; preFabID++)
             {
-                
                 MonoPool tilePool = new MonoPool
                 (
                     new MonoPoolData
@@ -61,10 +56,9 @@ namespace Components
                 );
                 _tilePoolsByPrefabID.Add(tilePool);
             }
-            
+
             TweenContainer = TweenContain.Install(this);
         }
-        
 
 
         private void OnEnable()
@@ -78,15 +72,24 @@ namespace Components
             UnRegisterEvents();
             TweenContainer.Clear();
         }
+        
         private void Start()
         {
+            for (var x = 0; x < _grid.GetLength(0); x++)
+            for (var y = 0; y < _grid.GetLength(1); y++)
+            {
+                var tile = _grid[x, y];
+
+                SpawnTile(tile.ID, _grid.CoordsToWorld(_transform, tile.Coords), tile.Coords);
+                tile.gameObject.Destroy();
+            }
+
             GridEvents.GridLoaded.Invoke(_gridBounds);
         }
+        
+        private bool CanMove(Vector2Int tileMoveCoord) { return _grid.IsInsideGrid(tileMoveCoord);}
 
-
-
-
-
+        
         private bool HasMatch(Tile fromTile, Tile toTile, out List<Tile> matches)
         {
             bool hasMatches = false;
@@ -102,17 +105,30 @@ namespace Components
             return hasMatches;
         }
 
+        private bool HasAnyMatches(out List<Tile> matches)
+        {
+            matches = new List<Tile>();
+
+            foreach (Tile tile in _grid)
+            {
+                matches.AddRange(_grid.GetMatchesXAll(tile));
+                matches.AddRange(_grid.GetMatchesYAll(tile));
+            }
+
+            return matches.Count > 0;
+        }
+
         private bool IsGameOver(out Tile hintTile, out GridDir hintDir)
         {
             hintDir = GridDir.Null;
             hintTile = null;
-            
+
             List<Tile> matches = new();
-            
+
             foreach (Tile fromTile in _grid)
             {
                 hintTile = fromTile;
-                
+
                 Vector2Int thisCoord = fromTile.Coords;
 
                 Vector2Int topCoord = thisCoord + Vector2Int.up;
@@ -122,66 +138,65 @@ namespace Components
 
                 if (_grid.IsInsideGrid(topCoord))
                 {
-                    
                     Tile toTile = _grid.Get(topCoord);
-                    _grid.Swap(fromTile,toTile);
+                    _grid.Swap(fromTile, toTile);
 
                     matches = _grid.GetMatchesX(fromTile);
-                    matches.AddRange(_grid.GetMatchesY(fromTile)); 
-                    
+                    matches.AddRange(_grid.GetMatchesY(fromTile));
+
                     _grid.Swap(toTile, fromTile);
-                    
+
                     if (matches.Count > 0)
-                    {  
+                    {
                         hintDir = GridDir.Up;
                         return false;
                     }
                 }
-                
+
                 if (_grid.IsInsideGrid(botCoord))
-                { 
+                {
                     Tile toTile = _grid.Get(botCoord);
-                    _grid.Swap(fromTile,toTile);
+                    _grid.Swap(fromTile, toTile);
 
                     matches = _grid.GetMatchesX(fromTile);
-                    matches.AddRange(_grid.GetMatchesY(fromTile)); 
-                    
+                    matches.AddRange(_grid.GetMatchesY(fromTile));
+
                     _grid.Swap(toTile, fromTile);
-                    
+
                     if (matches.Count > 0)
-                    { 
+                    {
                         hintDir = GridDir.Down;
                         return false;
                     }
                 }
-                
+
                 if (_grid.IsInsideGrid(leftCoord))
-                { 
-                    
+                {
                     Tile toTile = _grid.Get(leftCoord);
-                    _grid.Swap(fromTile,toTile);
+                    _grid.Swap(fromTile, toTile);
 
                     matches = _grid.GetMatchesX(fromTile);
-                    matches.AddRange(_grid.GetMatchesY(fromTile)); 
-                    
+                    matches.AddRange(_grid.GetMatchesY(fromTile));
+
                     _grid.Swap(toTile, fromTile);
-                    
+
                     if (matches.Count > 0)
                     {
                         hintDir = GridDir.left;
                         return false;
                     }
                 }
+
                 if (_grid.IsInsideGrid(rightCoord))
                 {
                     Tile toTile = _grid.Get(rightCoord);
-                    _grid.Swap(fromTile,toTile);
+                    _grid.Swap(fromTile, toTile);
 
                     matches = _grid.GetMatchesX(fromTile);
-                    matches.AddRange(_grid.GetMatchesY(fromTile)); 
-                    
+                    matches.AddRange(_grid.GetMatchesY(fromTile));
+
                     _grid.Swap(toTile, fromTile);
-                    
+
                     if (matches.Count > 0)
                     {
                         hintDir = GridDir.Right;
@@ -189,6 +204,7 @@ namespace Components
                     }
                 }
             }
+
             return matches.Count == 0;
         }
 
@@ -201,23 +217,22 @@ namespace Components
         [Button]
         private void TestGameOver()
         {
-           bool isGameOver = IsGameOver(out Tile hintTile, out GridDir hintDir);
-           
-           Debug.LogWarning($"İsGameOver: {isGameOver}, hintTile {hintTile}, hintDir {hintDir}", hintTile);
-          
+            bool isGameOver = IsGameOver(out Tile hintTile, out GridDir hintDir);
+
+            Debug.LogWarning($"İsGameOver: {isGameOver}, hintTile {hintTile}, hintDir {hintDir}", hintTile);
         }
 
         private void RainDownTiles()
         {
             bool didDestroy = true;
-            
+
             _tilesToMove = new Tile[_gridSizeX, _gridSizeY];
 
 
             for (int y = 0; y < _gridSizeY; y++)
             {
                 int spawnStartY = 0;
-                int spawnQueue = 0;
+
                 for (int x = 0; x < _gridSizeX; x++)
                 {
                     Vector2Int thisCoord = new(x, y);
@@ -234,15 +249,18 @@ namespace Components
                             {
                                 spawnStartY = thisCoord.y;
                             }
-                            
-                            spawnQueue = thisCoord.y - spawnStartY;
-                                
+
                             MonoPool randomPool = _tilePoolsByPrefabID.Random();
-                            Tile newTile = randomPool.Request<Tile>();
-                            Vector3 SpawnWorldPos = _grid.CoordsToWorld(_transform,new Vector2Int(x, spawnPoint + spawnQueue));
-                            newTile.Teleport(SpawnWorldPos);
-                            _grid.Set(newTile, thisCoord);
-                            _tilesToMove[thisCoord.x,thisCoord.y] = newTile;
+                            Tile newTile = SpawnTile
+                                (
+                                    randomPool, 
+                                    _grid.CoordsToWorld(_transform, new Vector2Int(x, spawnPoint)),
+                                    thisCoord
+                                    
+                                );
+
+
+                            _tilesToMove[thisCoord.x, thisCoord.y] = newTile;
                             break;
                         }
 
@@ -253,34 +271,57 @@ namespace Components
                         {
                             _grid.Set(null, mostTopTile.Coords);
                             _grid.Set(mostTopTile, thisCoord);
-                            
-                            _tilesToMove[thisCoord.x,thisCoord.y] = mostTopTile;
+
+                            _tilesToMove[thisCoord.x, thisCoord.y] = mostTopTile;
                             break;
                         }
                     }
                 }
             }
-            
+
 
             StartCoroutine(RainDownRoutine());
-            
         }
+
+        private Tile SpawnTile(MonoPool randomPool, Vector3 spawnWorldPos, Vector2Int spawnCoord)
+        {
+            Tile newTile = randomPool.Request<Tile>();
+
+            newTile.Teleport(spawnWorldPos);
+            _grid.Set(newTile, spawnCoord);
+
+
+            return newTile;
+        }
+
+        private Tile SpawnTile(int id,Vector3 worldPos,Vector2Int coords) => SpawnTile
+        (_tilePoolsByPrefabID[id], worldPos,coords);
 
         private IEnumerator RainDownRoutine()
         {
-            bool shouldWait = false;
+            int longestDistY = 0;
+            Tween longestTween = null;
             
+            bool shouldWait = false;
+
             for (int y = 0; y < _gridSizeY; y++)
             {
                 for (int x = 0; x < _gridSizeX; x++)
                 {
-                   Tile thisTile = _tilesToMove[x, y];
+                    Tile thisTile = _tilesToMove[x, y];
 
-                   if (thisTile == false) continue;
-                   thisTile.DOMove(_grid.CoordsToWorld(_transform, thisTile.Coords), 1f);
-                   yield return new WaitForSeconds(0.1f);
+                    if (thisTile == false) continue;
+                    
+                    Tween thisTween = thisTile.DOMove(_grid.CoordsToWorld(_transform, thisTile.Coords));
+                    
+                    shouldWait = true;
 
-                   shouldWait = true;
+                    if (longestDistY < y)
+                    {
+                        longestDistY = y;
+                        longestTween = thisTween;
+                    }
+                    
                 }
 
                 if (shouldWait)
@@ -288,19 +329,41 @@ namespace Components
                     yield return new WaitForSeconds(0.1f);
                 }
             }
-            GridEvents.InputStart?.Invoke();
+
+            if (longestTween != null)
+            {
+                longestTween.onComplete += delegate
+                {
+                    List<Tile> newMatches = new();
+
+                    if (HasAnyMatches(out _lastMatches))
+                    {
+                        _lastMatches.DoToAll(DespawnTile);
+                        RainDownTiles();
+                    }
+                    else
+                    {
+                        GridEvents.InputStart?.Invoke();
+                    }
+                }; 
+            }
+            else
+            {
+                GridEvents.InputStart?.Invoke();
+            }
+
+           
         }
 
 
-        private void DotileMoveAnim(Tile fromTile, Tile toTile, TweenCallback onComplate)
+        private void DotileMoveAnim(Tile fromTile, Tile toTile, TweenCallback onComplete)
         {
-            TweenContainer.AddSequence = DOTween.Sequence();
+            
             Vector3 fromTileWorldPos = _grid.CoordsToWorld(_transform, fromTile.Coords);
-            TweenContainer.AddedSeq.Append((fromTile.transform.DOMove(fromTileWorldPos, 1f)));
+            fromTile.DOMove(fromTileWorldPos);
             Vector3 toTileWorldPos = _grid.CoordsToWorld(_transform, toTile.Coords);
-            TweenContainer.AddedSeq.Join(toTile.transform.DOMove(toTileWorldPos, 1f));
+            toTile.DOMove(toTileWorldPos, onComplete);
 
-            TweenContainer.AddedSeq.onComplete += onComplate;
         }
 
         private void RegisterEvents()
@@ -308,17 +371,13 @@ namespace Components
             InputEvents.MouseDownGrid += OnMouseDownGrid;
             InputEvents.MouseUpGrid += OnMouseUpGrid;
         }
+
         private void OnMouseDownGrid(Tile clickedTile, Vector3 dirVector)
         {
             _selectedTile = clickedTile;
             _mouseDownPos = dirVector;
         }
 
-        private bool CanMove(Vector2Int tileMoveCoord)
-        {
-            return _grid.IsInsideGrid(tileMoveCoord);
-        }
-        
         private void OnMouseUpGrid(Vector3 mouseUpPos)
         {
             _mouseUpPos = mouseUpPos;
@@ -335,7 +394,7 @@ namespace Components
 
                 _grid.Swap(_selectedTile, toTile);
 
-                if (!HasMatch(_selectedTile, toTile, out List<Tile> matches))
+                if (!HasMatch(_selectedTile, toTile, out _lastMatches))
                 {
                     _grid.Swap(toTile, _selectedTile);
                     return;
@@ -346,18 +405,19 @@ namespace Components
                 DotileMoveAnim(_selectedTile, toTile,
                     delegate
                     {
-                        matches.DoToAll(e =>
-                        {
-                            _grid.Set(null, e.Coords);
-                            e.gameObject.Destroy();
-                        });
+                        _lastMatches.DoToAll(DespawnTile);
 
                         RainDownTiles();
                     });
-
-                _currMatchesDebug = matches;
             }
         }
+
+        private void DespawnTile(Tile e)
+        {
+            _grid.Set(null, e.Coords);
+            _tilePoolsByPrefabID[e.ID].DeSpawn(e);
+        }
+
         private void UnRegisterEvents()
         {
             InputEvents.MouseDownGrid += OnMouseDownGrid;
