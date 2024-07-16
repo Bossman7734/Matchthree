@@ -21,10 +21,7 @@ namespace Components
             _InputRoutine = new RoutineHelper(this, null, InputUpdate);
         }
 
-        private void Start()
-        {
-            _InputRoutine.StartCoroutine();
-        }
+       
 
         private void InputUpdate()
         {

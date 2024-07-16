@@ -37,6 +37,9 @@ namespace Components
         private MonoPool _tilePool3;
         private Tile[,] _tilesToMove;
         private List<Tile> _lastMatches;
+        private Tile _hintTile;
+        private GridDir _hintDir;
+        
 
 
         private void Awake()
@@ -84,7 +87,9 @@ namespace Components
                 tile.gameObject.Destroy();
             }
 
+            IsGameOver(out _hintTile, out _hintDir);
             GridEvents.GridLoaded.Invoke(_gridBounds);
+            GridEvents.InputStart?.Invoke();
         }
         
         private bool CanMove(Vector2Int tileMoveCoord) { return _grid.IsInsideGrid(tileMoveCoord);}
@@ -343,7 +348,9 @@ namespace Components
                     }
                     else
                     {
+                        IsGameOver(out _hintTile, out _hintDir);
                         GridEvents.InputStart?.Invoke();
+                        
                     }
                 }; 
             }
@@ -366,10 +373,28 @@ namespace Components
 
         }
 
+        private void TryShowHint()
+        {
+            if (_hintTile)
+            {
+                Vector2Int gridMoveDir = _hintDir.ToVector();
+
+               Vector3 moveCoords = _grid.CoordsToWorld(_transform, _hintTile.Coords + gridMoveDir);
+               
+                _hintTile.DOMove(moveCoords);
+            } 
+        }
+
         private void RegisterEvents()
         {
             InputEvents.MouseDownGrid += OnMouseDownGrid;
             InputEvents.MouseUpGrid += OnMouseUpGrid;
+            GridEvents.InputStart += OnInputStart;
+        }
+
+        private void OnInputStart()
+        {
+           this.WaitFor(new WaitForSeconds(1f), TryShowHint); 
         }
 
         private void OnMouseDownGrid(Tile clickedTile, Vector3 dirVector)
@@ -433,8 +458,9 @@ namespace Components
 
         private void UnRegisterEvents()
         {
-            InputEvents.MouseDownGrid += OnMouseDownGrid;
-            InputEvents.MouseUpGrid += OnMouseUpGrid;
+            InputEvents.MouseDownGrid -= OnMouseDownGrid;
+            InputEvents.MouseUpGrid -= OnMouseUpGrid;
+            GridEvents.InputStart -= OnInputStart;
         }
     }
 }
