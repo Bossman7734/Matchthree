@@ -17,15 +17,20 @@ namespace Components
     {
         [Inject] private InputEvents InputEvents { get; set; }
         [Inject] private GridEvents GridEvents { get; set; }
+
         [BoxGroup(Order = 999)] [TableMatrix(SquareCells = true, DrawElementMethod = nameof(DrawTile))] [OdinSerialize]
         private Tile[,] _grid;
+
         [SerializeField] private List<GameObject> _tilePrefabs;
         [SerializeField] private int _gridSizeX;
         [SerializeField] private int _gridSizeY;
         [SerializeField] List<int> _prefabIds;
         [SerializeField] private Bounds _gridBounds;
         [SerializeField] private Transform _transform;
-        
+        [SerializeField] private List<GameObject> _tileBGs = new();
+        [SerializeField] private GameObject _tileBGPrefab;
+        [SerializeField] private Transform _bGTrans;
+
         private Tile _selectedTile;
         private Vector3 _mouseDownPos;
         private Vector3 _mouseUpPos;
@@ -39,7 +44,6 @@ namespace Components
         private List<Tile> _lastMatches;
         private Tile _hintTile;
         private GridDir _hintDir;
-        
 
 
         private void Awake()
@@ -75,26 +79,30 @@ namespace Components
             UnRegisterEvents();
             TweenContainer.Clear();
         }
-        
+
         private void Start()
         {
-            for (var x = 0; x < _grid.GetLength(0); x++)
-            for (var y = 0; y < _grid.GetLength(1); y++)
+            for (int x = 0; x < _grid.GetLength(0); x++)
+            for (int y = 0; y < _grid.GetLength(1); y++)
             {
-                var tile = _grid[x, y];
+                Tile tile = _grid[x, y];
 
-                SpawnTile(tile.ID, _grid.CoordsToWorld(_transform, tile.Coords), tile.Coords);
+                SpawnTile(tile.ID, _grid.CoordsToWorld(_transform,
+                    tile.Coords), tile.Coords);
                 tile.gameObject.Destroy();
             }
 
             IsGameOver(out _hintTile, out _hintDir);
-            GridEvents.GridLoaded.Invoke(_gridBounds);
+            GridEvents.GridLoaded?.Invoke(_gridBounds);
             GridEvents.InputStart?.Invoke();
         }
-        
-        private bool CanMove(Vector2Int tileMoveCoord) { return _grid.IsInsideGrid(tileMoveCoord);}
 
-        
+        private bool CanMove(Vector2Int tileMoveCoord)
+        {
+            return _grid.IsInsideGrid(tileMoveCoord);
+        }
+
+
         private bool HasMatch(Tile fromTile, Tile toTile, out List<Tile> matches)
         {
             bool hasMatches = false;
@@ -257,12 +265,11 @@ namespace Components
 
                             MonoPool randomPool = _tilePoolsByPrefabID.Random();
                             Tile newTile = SpawnTile
-                                (
-                                    randomPool, 
-                                    _grid.CoordsToWorld(_transform, new Vector2Int(x, spawnPoint)),
-                                    thisCoord
-                                    
-                                );
+                            (
+                                randomPool,
+                                _grid.CoordsToWorld(_transform, new Vector2Int(x, spawnPoint)),
+                                thisCoord
+                            );
 
 
                             _tilesToMove[thisCoord.x, thisCoord.y] = newTile;
@@ -299,14 +306,14 @@ namespace Components
             return newTile;
         }
 
-        private Tile SpawnTile(int id,Vector3 worldPos,Vector2Int coords) => SpawnTile
-        (_tilePoolsByPrefabID[id], worldPos,coords);
+        private Tile SpawnTile(int id, Vector3 worldPos, Vector2Int coords) => SpawnTile
+            (_tilePoolsByPrefabID[id], worldPos, coords);
 
         private IEnumerator RainDownRoutine()
         {
             int longestDistY = 0;
             Tween longestTween = null;
-            
+
             bool shouldWait = false;
 
             for (int y = 0; y < _gridSizeY; y++)
@@ -316,9 +323,9 @@ namespace Components
                     Tile thisTile = _tilesToMove[x, y];
 
                     if (thisTile == false) continue;
-                    
+
                     Tween thisTween = thisTile.DOMove(_grid.CoordsToWorld(_transform, thisTile.Coords));
-                    
+
                     shouldWait = true;
 
                     if (longestDistY < y)
@@ -326,7 +333,6 @@ namespace Components
                         longestDistY = y;
                         longestTween = thisTween;
                     }
-                    
                 }
 
                 if (shouldWait)
@@ -350,27 +356,22 @@ namespace Components
                     {
                         IsGameOver(out _hintTile, out _hintDir);
                         GridEvents.InputStart?.Invoke();
-                        
                     }
-                }; 
+                };
             }
             else
             {
                 GridEvents.InputStart?.Invoke();
             }
-
-           
         }
 
 
         private void DotileMoveAnim(Tile fromTile, Tile toTile, TweenCallback onComplete = null)
         {
-            
             Vector3 fromTileWorldPos = _grid.CoordsToWorld(_transform, fromTile.Coords);
             fromTile.DOMove(fromTileWorldPos);
             Vector3 toTileWorldPos = _grid.CoordsToWorld(_transform, toTile.Coords);
             toTile.DOMove(toTileWorldPos, onComplete);
-
         }
 
         private void TryShowHint()
@@ -379,10 +380,10 @@ namespace Components
             {
                 Vector2Int gridMoveDir = _hintDir.ToVector();
 
-               Vector3 moveCoords = _grid.CoordsToWorld(_transform, _hintTile.Coords + gridMoveDir);
-               
+                Vector3 moveCoords = _grid.CoordsToWorld(_transform, _hintTile.Coords + gridMoveDir);
+
                 _hintTile.DOMove(moveCoords);
-            } 
+            }
         }
 
         private void RegisterEvents()
@@ -394,7 +395,7 @@ namespace Components
 
         private void OnInputStart()
         {
-           this.WaitFor(new WaitForSeconds(1f), TryShowHint); 
+            this.WaitFor(new WaitForSeconds(1f), TryShowHint);
         }
 
         private void OnMouseDownGrid(Tile clickedTile, Vector3 dirVector)
@@ -422,19 +423,15 @@ namespace Components
                 if (!HasMatch(_selectedTile, toTile, out _lastMatches))
                 {
                     GridEvents.InputStop?.Invoke();
-                    
-                    DotileMoveAnim(_selectedTile,toTile, delegate
+
+                    DotileMoveAnim(_selectedTile, toTile, delegate
                     {
                         _grid.Swap(toTile, _selectedTile);
-                        
-                        DotileMoveAnim(_selectedTile,toTile, 
-                            delegate
-                        {
-                            
-                            GridEvents.InputStart?.Invoke();
-                        });
+
+                        DotileMoveAnim(_selectedTile, toTile,
+                            delegate { GridEvents.InputStart?.Invoke(); });
                     });
-                    
+
                     return;
                 }
 

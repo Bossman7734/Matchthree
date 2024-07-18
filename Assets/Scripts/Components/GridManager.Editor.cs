@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using Extensions.System;
+using Extensions.Unity;
 using Sirenix.OdinInspector;
 using Sirenix.Utilities;
+using Unity.Mathematics;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -104,8 +106,32 @@ namespace Components
                 _grid[coord.x, coord.y] = tile;// be carefull while assigning tile to Inversed y coordinates!
                 
             }
+            GenerateTileBG();
             CalculateBounds();
         }
+
+        [Button]
+        private void GenerateTileBG()
+        {
+
+            _tileBGs.DoToAll(DestroyImmediate);
+            
+            foreach (Tile tile in _grid)
+            {
+                Vector3 tileWorldPos = tile.transform.position;
+
+               GameObject tileBG = Instantiate
+                (
+                    _tileBGPrefab,
+                    tileWorldPos,
+                    quaternion.identity,
+                    _bGTrans
+                );
+               _tileBGs.Add(tileBG);
+               
+            }
+        }
+        
 #endif       
     }
 }
