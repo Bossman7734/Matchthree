@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,9 +23,14 @@ namespace Components
         [Inject] private InputEvents InputEvents { get; set; }
         [Inject] private GridEvents GridEvents { get; set; }
 
-        [BoxGroup(Order = 999)] [TableMatrix(SquareCells = true, DrawElementMethod = nameof(DrawTile))] [OdinSerialize]
+        [BoxGroup(Order = 999)]
+#if  UNITY_EDITOR
+        
+        [TableMatrix(SquareCells = true, DrawElementMethod = nameof(DrawTile))] 
+        
+#endif
+        [OdinSerialize]
         private Tile[,] _grid;
-
         [SerializeField] private List<GameObject> _tilePrefabs;
         [SerializeField] private int _gridSizeX;
         [SerializeField] private int _gridSizeY;
@@ -49,6 +55,7 @@ namespace Components
         private Tile _hintTile;
         private GridDir _hintDir;
         private Sequence _hintTween;
+        private Coroutine _destroyRoutine;
 
 
         private void Awake()
@@ -108,7 +115,7 @@ namespace Components
         }
 
 
-        private bool HasMatch(Tile fromTile, Tile toTile, out List<List<Tile>> matches)
+        /*private bool HasMatch(Tile fromTile, Tile toTile, out List<List<Tile>> matches)
         {
             matches = new List<List<Tile>>();
             bool hasMatches = false;
@@ -133,7 +140,7 @@ namespace Components
           // matches = matches.Where(e => e.Count > 0).ToList(); // filter example...
 
             return hasMatches;
-        }
+        }*/
 
         private bool HasAnyMatches(out List<List<Tile>> matches)  //we have many list and we take thıs all List adding to one list...
         {
@@ -149,7 +156,24 @@ namespace Components
                     matches.Add(matchesAll);
                 }
             }
-            matches = matches.Where(e => e.Count > 0).ToList();
+
+            matches = matches.OrderByDescending(e => e.Count).ToList();
+
+            for (var i = 0; i < matches.Count; i++)
+            {
+                List<Tile> match = matches[i];
+                match = match.Where(e => e.ToBeDestroyed == false).ToList();
+
+                if (match.Count > 2)
+                {
+                    matches[i] = match;
+                    match.DoToAll(e => e.ToBeDestroyed = true);
+                }
+                else
+                {
+                    matches.Remove(match);
+                }
+            }
 
             return matches.Count > 0;
         }
@@ -242,20 +266,6 @@ namespace Components
             }
 
             return matches.Count == 0;
-        }
-
-        [Button] //Unit Test 
-        private void TestGridDir(Vector2 input)
-        {
-            Debug.LogWarning(GridF.GetGridDir(input));
-        }
-
-        [Button]
-        private void TestGameOver()
-        {
-            bool isGameOver = IsGameOver(out Tile hintTile, out GridDir hintDir);
-
-            Debug.LogWarning($"İsGameOver: {isGameOver}, hintTile {hintTile}, hintDir {hintDir}", hintTile);
         }
 
         private void SpawnAndAllocateTiles()
@@ -372,7 +382,7 @@ namespace Components
 
                     if (HasAnyMatches(out _lastMatches))
                     {
-                        StartCoroutine(DestroyRoutine());
+                        StartDestroyRoutine();
                     }
                     else
                     {
@@ -387,13 +397,25 @@ namespace Components
             }
         }
 
+        private void StartDestroyRoutine()
+        {
+            if (_destroyRoutine  != null )
+            {
+                StopCoroutine(_destroyRoutine);
+            }
+            
+            _destroyRoutine = StartCoroutine(DestroyRoutine());
+        
+        }
+
         private IEnumerator DestroyRoutine()
         {
             foreach (List<Tile> matches in _lastMatches)
             {
+                int groupCount = matches.Count;
                 matches.DoToAll(DespawnTile);
                 
-                EDebug.Method();
+                GridEvents.MatchGroupDespawn?.Invoke(groupCount);
 
                 yield return new WaitForSeconds(0.1f);
             } 
@@ -464,7 +486,7 @@ namespace Components
 
                 _grid.Swap(_selectedTile, toTile);
 
-                if (!HasMatch(_selectedTile, toTile, out _lastMatches))
+                if (!HasAnyMatches(out _lastMatches))
                 {
                     GridEvents.InputStop?.Invoke();
 
@@ -483,7 +505,7 @@ namespace Components
                     DotileMoveAnim(_selectedTile, toTile,
                         delegate
                         {
-                            StartCoroutine(DestroyRoutine());
+                           StartDestroyRoutine();
                         });
                 }
             }

@@ -3,6 +3,7 @@ using DG.Tweening;
 using Extensions.DoTween;
 using Extensions.Unity;
 using UnityEngine;
+using Zenject;
 
 
 namespace Components
@@ -22,6 +23,7 @@ namespace Components
 
         public MonoPool MyPool { get; set; }
         public ITweenContainer TweenContainer { get; set; }
+        public bool ToBeDestroyed { get; set; }
 
         private void Awake()
         {
@@ -69,7 +71,8 @@ namespace Components
 
         public void AfterSpawn()
         {
-           //RESET METHOD (Ressurrect)
+            ToBeDestroyed = false;
+            //RESET METHOD (Ressurrect)
         }
 
         public void Construct(Vector2Int coords)

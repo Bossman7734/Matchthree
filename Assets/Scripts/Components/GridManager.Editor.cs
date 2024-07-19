@@ -17,6 +17,7 @@ namespace Components
     public partial class GridManager
     {
 #if UNITY_EDITOR
+        
         private Tile DrawTile(Rect rect, Tile tile)
         {
             if (tile == false) return tile;
@@ -29,6 +30,21 @@ namespace Components
             
             return tile;
         }
+        
+        [Button] //Unit Test 
+        private void TestGridDir(Vector2 input)
+        {
+            Debug.LogWarning(GridF.GetGridDir(input));
+        }
+
+        [Button]
+        private void TestGameOver()
+        {
+            bool isGameOver = IsGameOver(out Tile hintTile, out GridDir hintDir);
+
+            Debug.LogWarning($"İsGameOver: {isGameOver}, hintTile {hintTile}, hintDir {hintDir}", hintTile);
+        }
+        
 
         private void OnDrawGizmos()
         {

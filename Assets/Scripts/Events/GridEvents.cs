@@ -5,8 +5,9 @@ namespace Events
 {
     public class GridEvents
     {
-        public static UnityAction<Bounds> GridLoaded;
-        public static UnityAction InputStart;
-        public static UnityAction InputStop;
+        public UnityAction<Bounds> GridLoaded;
+        public UnityAction InputStart;
+        public UnityAction InputStop;
+        public UnityAction<int> MatchGroupDespawn;
     }
 }
