@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Extensions.System;
 using Extensions.Unity;
 using Sirenix.OdinInspector;
 using Sirenix.Utilities;
 using Unity.Mathematics;
+using Unity.VisualScripting;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -36,11 +38,11 @@ namespace Components
             
             Gizmos.color = Color.blue;
             
-            foreach (Tile tile in _lastMatches)
+            foreach (Tile tile in _lastMatches.SelectMany(e => e))
             {
                 if (!tile) continue;
                 Gizmos.DrawWireCube(tile.transform.position,Vector3.one);
-
+            
             }
         }
 
