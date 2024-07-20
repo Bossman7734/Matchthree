@@ -49,7 +49,7 @@ namespace Components
         [SerializeField] private GameObject _borderRight;
         [SerializeField] private GameObject _borderTop;
         [SerializeField] private GameObject _borderBot;
-        [SerializeField] private Transform _borderTrans;
+        [SerializeField] private Transform _borderTrans; 
         
 
         private Tile _selectedTile;
@@ -67,6 +67,7 @@ namespace Components
         private GridDir _hintDir;
         private Sequence _hintTween;
         private Coroutine _destroyRoutine;
+        private Coroutine _hintRoutine;
 
 
         private void Awake()
@@ -89,8 +90,7 @@ namespace Components
 
             TweenContainer = TweenContain.Install(this);
         }
-
-
+        
         private void OnEnable()
         {
             RegisterEvents();
@@ -421,15 +421,16 @@ namespace Components
 
         private IEnumerator DestroyRoutine()
         {
+            int groupCount = _lastMatches.Count;
             foreach (List<Tile> matches in _lastMatches)
             {
-                int groupCount = matches.Count;
+                
                 matches.DoToAll(DespawnTile);
                 
-                GridEvents.MatchGroupDespawn?.Invoke(groupCount);
-
                 yield return new WaitForSeconds(0.1f);
             } 
+            GridEvents.MatchGroupDespawn?.Invoke(groupCount);
+            
             SpawnAndAllocateTiles();
         }
         private void DespawnTile(Tile e)
@@ -447,6 +448,34 @@ namespace Components
             toTile.DOMove(toTileWorldPos, onComplete);
         }
 
+        private void StartHintRoutine()
+        {
+            if (_hintRoutine != null)
+            {
+                StopCoroutine(_hintRoutine);
+            }
+
+            _hintRoutine = StartCoroutine(HintRoutineUpdate()
+            );
+        }
+
+        private void StopHintRoutine()
+        {
+            if (_hintRoutine != null)
+            {
+                StopCoroutine(_hintRoutine);
+                _hintRoutine = null; 
+            }
+        }
+        
+        private IEnumerator HintRoutineUpdate()
+        {
+            while (true)
+            {
+                yield return new WaitForSeconds(10f);
+                TryShowHint(); 
+            }
+        }
         private void TryShowHint()
         {
             if (_hintTile)
@@ -464,11 +493,17 @@ namespace Components
             InputEvents.MouseDownGrid += OnMouseDownGrid;
             InputEvents.MouseUpGrid += OnMouseUpGrid;
             GridEvents.InputStart += OnInputStart;
+            GridEvents.InputStop += OnInputStop;
+        }
+
+        private void OnInputStop()
+        {
+           StopHintRoutine(); 
         }
 
         private void OnInputStart()
         {
-            this.WaitFor(new WaitForSeconds(1f), TryShowHint);
+          StartHintRoutine();
         }
 
         private void OnMouseDownGrid(Tile clickedTile, Vector3 dirVector)
@@ -529,6 +564,7 @@ namespace Components
             InputEvents.MouseDownGrid -= OnMouseDownGrid;
             InputEvents.MouseUpGrid -= OnMouseUpGrid;
             GridEvents.InputStart -= OnInputStart;
+            GridEvents.InputStop -= OnInputStop;
         }
     }
 }

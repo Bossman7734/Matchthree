@@ -52,6 +52,10 @@ PrefabInstance:
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 21300000, guid: 3dfa7b93eefca7449b2987962b552ce6, type: 3}
+    - target: {fileID: 1709518037822393951, guid: 5ad476d463e0d4b4dbf0d87bbb7b113a, type: 3}
+      propertyPath: m_SortingOrder
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2684301859220750513, guid: 5ad476d463e0d4b4dbf0d87bbb7b113a, type: 3}
       propertyPath: m_Name
       value: TilePearl
