@@ -1,3 +1,5 @@
+using Settings;
+
 namespace Components
 {
     public static class EnvVar
@@ -5,12 +7,14 @@ namespace Components
         public const string LoginSceneName = "Login";
         public const string MainSceneName = "Main";
         public const string SettingsPath = "Settings/";
+        public const string ProjectSettingsPath = "Settings/" + nameof(ProjectSettings);
         public const float TileHalfExtends = 0.5f;
         public const int BorderSpriteLayer = 3;
         public const int MaskBGSpriteLayer = 2;
         public const int HintSpriteLayer = 1;
         public const int TileSpriteLayer = 0;
         public const int TileBGSpriteLayer = -1;
+       
 
     }
 }

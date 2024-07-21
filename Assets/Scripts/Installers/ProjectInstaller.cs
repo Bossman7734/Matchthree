@@ -1,5 +1,8 @@
 using Components;
 using Events;
+using Settings;
+using TMPro;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 using Zenject;
 
@@ -10,8 +13,21 @@ namespace Installers
         private ProjectEvents _projectEvents;  //Property olan ProjectEvents i introduce/Field a çeviriyoruz...
         private  InputEvents _InputEvents;
         private GridEvents _gridEvents;
+        private ProjectSettings _projectSettings;
 
         public override void InstallBindings()
+        {
+            InstallEvents();
+            InstallSettings();
+        }
+
+        private void InstallSettings()
+        {
+            _projectSettings = Resources.Load<ProjectSettings>(EnvVar.ProjectSettingsPath);
+            Container.BindInstance(_projectSettings).AsSingle();
+        }
+
+        private void InstallEvents()
         {
             _projectEvents = new();      
             Container.BindInstance(_projectEvents).AsSingle();// Singleton gibi fakat değil...

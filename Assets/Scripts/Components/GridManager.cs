@@ -9,10 +9,12 @@ using Extensions.System;
 using Extensions.Unity;
 using ModestTree;
 using NUnit.Framework;
+using Settings;
 using Sirenix.OdinInspector;
 using Sirenix.Serialization;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Serialization;
 using Zenject;
 
 
@@ -22,6 +24,7 @@ namespace Components
     {
         [Inject] private InputEvents InputEvents { get; set; }
         [Inject] private GridEvents GridEvents { get; set; }
+        [Inject] private ProjectSettings ProjectSettings { get; set; }
 
         [BoxGroup(Order = 999)]
 #if  UNITY_EDITOR
@@ -31,26 +34,16 @@ namespace Components
 #endif
         [OdinSerialize]
         private Tile[,] _grid;
-        [SerializeField] private List<GameObject> _tilePrefabs;
         [SerializeField] private int _gridSizeX;
         [SerializeField] private int _gridSizeY;
-        [SerializeField] List<int> _prefabIds;
         [SerializeField] private Bounds _gridBounds;
         [SerializeField] private Transform _transform;
         [SerializeField] private List<GameObject> _tileBGs = new();
         [SerializeField] private List<GameObject> _gridBorders = new();
-        [SerializeField] private GameObject _tileBGPrefab;
         [SerializeField] private Transform _bGTrans;
-        [SerializeField] private GameObject _borderTopLeft;
-        [SerializeField] private GameObject _borderTopRight;
-        [SerializeField] private GameObject _borderBotLeft;
-        [SerializeField] private GameObject _borderBotRıght;
-        [SerializeField] private GameObject _borderLeft;
-        [SerializeField] private GameObject _borderRight;
-        [SerializeField] private GameObject _borderTop;
-        [SerializeField] private GameObject _borderBot;
         [SerializeField] private Transform _borderTrans; 
         [SerializeField] private int _scoreMulti;
+        
         
 
         private Tile _selectedTile;
@@ -69,19 +62,24 @@ namespace Components
         private Sequence _hintTween;
         private Coroutine _destroyRoutine;
         private Coroutine _hintRoutine;
+        private Settings _mySettings;
+        
+        
 
 
         private void Awake()
         {
+            _mySettings = ProjectSettings.GridManagerSettings;
+            
             _tilePoolsByPrefabID = new List<MonoPool>();
 
-            for (int preFabID = 0; preFabID < _prefabIds.Count; preFabID++)
+            for (int preFabID = 0; preFabID <_mySettings.PrefabIds.Count; preFabID++)
             {
                 MonoPool tilePool = new MonoPool
                 (
                     new MonoPoolData
                     (
-                        _tilePrefabs[preFabID],
+                        _mySettings.TilePrefabs[preFabID],
                         10,
                         _transform
                     )
@@ -178,8 +176,9 @@ namespace Components
                 match = match.Where(e => e.ToBeDestroyed == false).DoToAll(e => e.ToBeDestroyed = true).ToList();
                 
             }
+                const int matchIndex = 2;
 
-            matches = matches.Where(e => e.Count > 2).ToList();
+            matches = matches.Where(e => e.Count > matchIndex).ToList();
 
             return matches.Count > 0;
         }
@@ -576,6 +575,38 @@ namespace Components
             InputEvents.MouseUpGrid -= OnMouseUpGrid;
             GridEvents.InputStart -= OnInputStart;
             GridEvents.InputStop -= OnInputStop;
+        }
+        
+        [Serializable]
+        public class Settings
+        {
+            public List<GameObject> TilePrefabs => _tilePrefabs;
+            public List<int> PrefabIds =>  _prefabIds;
+            public GameObject TileBGPrefab => _tileBGPrefab;
+            
+            
+
+
+            [SerializeField] private GameObject _tileBGPrefab;
+            [SerializeField] List<int> _prefabIds;
+            [SerializeField] private List<GameObject> _tilePrefabs;
+            [SerializeField] private GameObject _borderTopLeft;
+            [SerializeField] private GameObject _borderTopRight;
+            [SerializeField] private GameObject _borderBotLeft;
+            [SerializeField] private GameObject _borderBotRıght;
+            [SerializeField] private GameObject _borderLeft;
+            [SerializeField] private GameObject _borderRight;
+            [SerializeField] private GameObject _borderTop;
+            [SerializeField] private GameObject _borderBot;
+
+            public GameObject BorderTopLeft => _borderTopLeft;
+            public GameObject BorderTopRight => _borderTopRight;
+            public GameObject BorderBotleft => _borderBotLeft;
+            public GameObject BorderBotRight => _borderBotRıght;
+           public GameObject BorderLeft => _borderLeft;
+           public GameObject BorderRight => _borderRight;
+           public GameObject BorderTop => _borderTop;
+           public GameObject BorderBot => _borderBot;
         }
     }
 }
