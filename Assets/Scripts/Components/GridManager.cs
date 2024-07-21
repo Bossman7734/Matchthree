@@ -50,6 +50,7 @@ namespace Components
         [SerializeField] private GameObject _borderTop;
         [SerializeField] private GameObject _borderBot;
         [SerializeField] private Transform _borderTrans; 
+        [SerializeField] private int _scoreMulti;
         
 
         private Tile _selectedTile;
@@ -173,18 +174,12 @@ namespace Components
             for (var i = 0; i < matches.Count; i++)
             {
                 List<Tile> match = matches[i];
-                match = match.Where(e => e.ToBeDestroyed == false).ToList();
-
-                if (match.Count > 2)
-                {
-                    matches[i] = match;
-                    match.DoToAll(e => e.ToBeDestroyed = true);
-                }
-                else
-                {
-                    matches.Remove(match);
-                }
+                
+                match = match.Where(e => e.ToBeDestroyed == false).DoToAll(e => e.ToBeDestroyed = true).ToList();
+                
             }
+
+            matches = matches.Where(e => e.Count > 2).ToList();
 
             return matches.Count > 0;
         }
@@ -424,12 +419,15 @@ namespace Components
             int groupCount = _lastMatches.Count;
             foreach (List<Tile> matches in _lastMatches)
             {
-                
+                IncScoreMulti();
                 matches.DoToAll(DespawnTile);
                 
+                //TODO: Show Score Multi text in url as PunchScale
+                
+            GridEvents.MatchGroupDespawn?.Invoke(groupCount);
+            
                 yield return new WaitForSeconds(0.1f);
             } 
-            GridEvents.MatchGroupDespawn?.Invoke(groupCount);
             
             SpawnAndAllocateTiles();
         }
@@ -461,6 +459,10 @@ namespace Components
 
         private void StopHintRoutine()
         {
+            if (_hintTile)
+            {
+                _hintTile.Teleport(_grid.CoordsToWorld(_transform, _hintTile.Coords));
+            }
             if (_hintRoutine != null)
             {
                 StopCoroutine(_hintRoutine);
@@ -504,6 +506,15 @@ namespace Components
         private void OnInputStart()
         {
           StartHintRoutine();
+          ResetScoreMulti();
+        }
+
+        private void ResetScoreMulti() {_scoreMulti = 0;}
+
+        private void IncScoreMulti()
+        {
+            _scoreMulti++;
+            
         }
 
         private void OnMouseDownGrid(Tile clickedTile, Vector3 dirVector)
