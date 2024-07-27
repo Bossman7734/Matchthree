@@ -1,25 +1,33 @@
+using System;
 using Components;
+
 using Events;
 using Settings;
 using TMPro;
+using Unity.Android.Types;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using Zenject;
+using Zenject.Internal;
+using static Events.MainMenüEvents;
 
 namespace Installers
 {
     public class ProjectInstaller : MonoInstaller<ProjectInstaller> 
     {
+        
         private ProjectEvents _projectEvents;  //Property olan ProjectEvents i introduce/Field a çeviriyoruz...
         private  InputEvents _InputEvents;
         private GridEvents _gridEvents;
         private ProjectSettings _projectSettings;
-
+        
         public override void InstallBindings()
         {
             InstallEvents();
             InstallSettings();
         }
+
 
         private void InstallSettings()
         {
@@ -53,18 +61,21 @@ namespace Installers
         {
             SceneManager.LoadScene(sceneName); //"Main" kısmını ıntroduce parameters yapıyoruz... 
         }
+
+
         private void RegisterEvents()  // Class sadece oyun kapandığında deactive olacağından  Unregister etmiyoruz...
         {
             SceneManager.sceneLoaded += OnSceneLoaded;
         }
         
+
+
         private void OnSceneLoaded(Scene LoadedScene, LoadSceneMode arg1)
         {
             if (LoadedScene.name == EnvVar.LoginSceneName)
             {
-                LoadScene(EnvVar.MainSceneName);
+               SceneManager.LoadScene(EnvVar.MainSceneName);
             }
         }
-
     }
 }

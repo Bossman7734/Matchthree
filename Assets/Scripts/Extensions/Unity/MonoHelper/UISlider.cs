@@ -5,6 +5,7 @@ using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using NotImplementedException = System.NotImplementedException;
 
 namespace Extensions.Unity.MonoHelper
 {
@@ -58,6 +59,11 @@ namespace Extensions.Unity.MonoHelper
 
         protected override void UnRegisterEvents()
         {
+        }
+
+        protected virtual void OnValueChanged(float value)
+        {
+            throw new NotImplementedException();
         }
     }
 }
