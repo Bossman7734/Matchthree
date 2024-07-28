@@ -1,9 +1,11 @@
 using System;
 using System.Linq;
+using Components.UI.GameOver;
 using Events;
 using Extensions.Unity;
 using Extensions.Unity.MonoHelper;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Zenject;
 
 namespace Components
@@ -55,9 +57,20 @@ namespace Components
         {
             GridEvents.InputStart += OnInputStart;
             GridEvents.InputStop += OnInputStop;
+            GameOverEvents.MainMenüBTN += OnMainMenüBTN;
+            GameOverEvents.TryAgainBTN += OnTryAgainBTN;
         }
 
+        private void OnTryAgainBTN()
+        {
+            SceneManager.LoadScene("Main");
+        }
 
+        private void OnMainMenüBTN()
+        {
+            SceneManager.LoadScene("MainMenü");
+        }
+        
         private void OnInputStart()
         {
             _InputRoutine.StartCoroutine();

@@ -12,7 +12,7 @@ public class PlayerScoreTMP : UITMP, ITweenContainerBind
     private Tween _counterTween;
     public ITweenContainer TweenContainer { get; set; }
     private int _currCounterVal;
-    private int _playerScore;
+    public int _playerScore;
 
     private void Awake()
     {

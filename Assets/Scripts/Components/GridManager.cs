@@ -12,6 +12,7 @@ using NUnit.Framework;
 using Settings;
 using Sirenix.OdinInspector;
 using Sirenix.Serialization;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Serialization;
@@ -43,9 +44,16 @@ namespace Components
         [SerializeField] private Transform _bGTrans;
         [SerializeField] private Transform _borderTrans; 
         [SerializeField] private int _scoreMulti;
+        [SerializeField] private int _moveCounter;
+        [SerializeField] private int _targetScore;
+        [SerializeField] private GameObject _gameOverCanvas;
+        [SerializeField] private GameObject _victoryCanvas;
+        [SerializeField] private GameObject moveText;
+        [SerializeField] private GameObject targetText;
+        [SerializeField] private PlayerScoreTMP _playerScoreTMP;
         
-        
-
+        private TextMeshProUGUI textTMP;
+        private TextMeshProUGUI targetTMP;
         private Tile _selectedTile;
         private Vector3 _mouseDownPos;
         private Vector3 _mouseUpPos;
@@ -69,6 +77,11 @@ namespace Components
 
         private void Awake()
         {
+            textTMP = moveText.GetComponent<TextMeshProUGUI>();
+            textTMP.text = _moveCounter.ToString();
+            targetTMP = targetText.GetComponent<TextMeshProUGUI>();
+            targetTMP.text = _targetScore.ToString();
+            
             _mySettings = ProjectSettings.GridManagerSettings;
             
             _tilePoolsByPrefabID = new List<MonoPool>();
@@ -541,6 +554,26 @@ namespace Components
                 Tile toTile = _grid.Get(tileMoveCoord);
 
                 _grid.Swap(_selectedTile, toTile);
+                //
+                if (_moveCounter > 0)
+                {
+                    _moveCounter--;
+                    textTMP.text = _moveCounter.ToString();
+                }
+                else
+                {
+                    
+                    int score = _playerScoreTMP._playerScore;
+                    
+                    if (score >= _targetScore)
+                    {
+                        _victoryCanvas.SetActive(true);
+                    }
+                    else
+                    {
+                        _gameOverCanvas.SetActive(true);
+                    }
+                }
 
                 if (!HasAnyMatches(out _lastMatches))
                 {
