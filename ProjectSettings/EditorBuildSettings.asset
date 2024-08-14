@@ -6,15 +6,15 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/LoginScene.unity
-    guid: 9fc0d4010bbf28b4594072e72b8655ab
-  - enabled: 1
     path: "Assets/Scenes/MainMen\xFC.unity"
     guid: b185a6582aa29714a82c537816a7ec07
   - enabled: 1
     path: Assets/Scenes/Main.unity
     guid: 229eb6b49f57f0149aeafffd749834f5
   - enabled: 1
-    path: Assets/Scenes/MainMenü.unity
+    path: "Assets/Scenes/MainMen\xFC.unity"
     guid: b185a6582aa29714a82c537816a7ec07
+  - enabled: 1
+    path: Assets/Scenes/LoginScene.unity
+    guid: 9fc0d4010bbf28b4594072e72b8655ab
   m_configObjects: {}

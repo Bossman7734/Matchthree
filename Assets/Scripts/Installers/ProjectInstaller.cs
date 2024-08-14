@@ -4,7 +4,7 @@ using Components;
 using Events;
 using Settings;
 using TMPro;
-using Unity.Android.Types;
+using Extensions.Unity;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
@@ -47,14 +47,16 @@ namespace Installers
             Container.BindInstance(_gridEvents).AsSingle();
         }
 
-        private void Awake()
-        {
-            RegisterEvents();
-        }
+        private void Awake() { RegisterEvents(); }
 
         public override void Start()
         {
             _projectEvents.ProjectStarted?.Invoke();
+           
+            if ( SceneManager . GetActiveScene () . name == EnvVar . LoginSceneName )
+            {
+                LoadScene ( EnvVar . MainSceneName ) ;
+            }
             
         }
         private static void LoadScene(string sceneName)  //SceneManager.LoadScene("Main") metodunu Extract Method Yapıyoruz...(LoadScene)
@@ -72,10 +74,10 @@ namespace Installers
 
         private void OnSceneLoaded(Scene LoadedScene, LoadSceneMode arg1)
         {
-            if (LoadedScene.name == EnvVar.LoginSceneName)
-            {
-               SceneManager.LoadScene(EnvVar.MainSceneName);
-            }
+            // if (LoadedScene.name == EnvVar.LoginSceneName)
+            // {
+            //    SceneManager.LoadScene(EnvVar.MainSceneName);
+            // }
         }
     }
 }
