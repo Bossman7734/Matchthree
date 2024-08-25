@@ -5,9 +5,12 @@ using Events;
 using Settings;
 using TMPro;
 using Extensions.Unity;
+using ViewModels;
+using Unity.Android.Types;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
+using ViewModels;
 using Zenject;
 using Zenject.Internal;
 using static Events.MainMenüEvents;
@@ -26,6 +29,13 @@ namespace Installers
         {
             InstallEvents();
             InstallSettings();
+            InstallData();
+            
+        }
+
+        private void InstallData()
+        {
+            Container.BindInterfacesAndSelfTo<PlayerVM>().AsSingle();
         }
 
 
@@ -68,8 +78,13 @@ namespace Installers
         private void RegisterEvents()  // Class sadece oyun kapandığında deactive olacağından  Unregister etmiyoruz...
         {
             SceneManager.sceneLoaded += OnSceneLoaded;
+            ProjectEvents.LevelComplete += OnLevelComplete;
         }
-        
+
+        private void OnLevelComplete()
+        {
+            LoadScene(EnvVar.MainSceneName);
+        }
 
 
         private void OnSceneLoaded(Scene LoadedScene, LoadSceneMode arg1)

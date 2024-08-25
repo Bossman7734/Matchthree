@@ -7,15 +7,11 @@ using Events;
 using Extensions.DoTween;
 using Extensions.System;
 using Extensions.Unity;
-using ModestTree;
-using NUnit.Framework;
 using Settings;
 using Sirenix.OdinInspector;
 using Sirenix.Serialization;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.Serialization;
 using Zenject;
 
 
@@ -590,6 +586,7 @@ namespace Components
                 else
                 {
                     GridEvents.InputStop?.Invoke();
+                    GridEvents.PlayerMoved?.Invoke();
 
                     DotileMoveAnim(_selectedTile, toTile,
                         delegate

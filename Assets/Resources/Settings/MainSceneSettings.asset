@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ecdd12328ac2428abe41532d3db4f7f4, type: 3}
+  m_Name: MainSceneSettings
+  m_EditorClassIdentifier: 
+  _Settings:
+    _levels:
+    - _levelPrefab: {fileID: 3376480638449885069, guid: 0814e9cba6b36f44d861178bedf14bd7, type: 3}
+      _levelMoveCount: 5
+    - _levelPrefab: {fileID: 6264306707321365032, guid: cd0a6620bf236684c8c1bfc87618b29d, type: 3}
+      _levelMoveCount: 5
+    - _levelPrefab: {fileID: 8516371750277633477, guid: 483e603a36ea33c41bf05d5f150055c7, type: 3}
+      _levelMoveCount: 5
+    _levelsB:
+    - _levelPrefab: {fileID: 6264306707321365032, guid: cd0a6620bf236684c8c1bfc87618b29d, type: 3}
+      _levelMoveCount: 2
+    - _levelPrefab: {fileID: 8516371750277633477, guid: 483e603a36ea33c41bf05d5f150055c7, type: 3}
+      _levelMoveCount: 8
+    - _levelPrefab: {fileID: 3376480638449885069, guid: 0814e9cba6b36f44d861178bedf14bd7, type: 3}
+      _levelMoveCount: 5

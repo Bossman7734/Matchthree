@@ -6,6 +6,7 @@ namespace Services
 {
     public class ToBeToAPI
     {
+        private static bool _currentGroup;
         private const float ABGGroupChance = 0.5f;
         private const string ABTestPrefKey = "ABTest";
         public static ToBeToAPI Ins{get;private set;}
@@ -19,19 +20,31 @@ namespace Services
 
             bool ab = randomABGroup > ABGGroupChance;
 
+            _currentGroup = ab;
+
             if (PlayerPrefs.HasKey(ABTestPrefKey) == false)
             {
-                PlayerPrefs.SetInt(ABTestPrefKey, ab.ToInt());
+                PlayerPrefs.SetInt(ABTestPrefKey, _currentGroup.ToInt());
                 
                 Debug.LogWarning("AbTest Init");
             }
             else
             {
-                ab = PlayerPrefs.GetInt(ABTestPrefKey).ToBool();
+                _currentGroup = PlayerPrefs.GetInt(ABTestPrefKey).ToBool();
             }
             
-            Debug.LogWarning($"AB gROUP: {ab.ToInt()}");
+            Debug.LogWarning($"AB Group: {_currentGroup.ToInt()}");
         }
+        public int GetGroup()
+        {
+            return _currentGroup.ToInt();
+        }
+        
+        public void ForceSetGroup(bool group)
+        {
+            PlayerPrefs.SetInt(ABTestPrefKey, group.ToInt());
+        }
+        
 
     }
 }
